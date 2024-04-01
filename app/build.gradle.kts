@@ -1,3 +1,5 @@
+// https://developer.android.com/build
+// Module-level gradle file for configure build settings for the specific module.
 plugins {
     // initial plugins
     id("com.android.application")
@@ -9,11 +11,18 @@ plugins {
 
 android {
     namespace = "com.skele.bookshelf"
+    // Determines which Android and Java APIs are available when compiling source code.
     compileSdk = 34
 
     defaultConfig {
         applicationId = "com.skele.bookshelf"
+        // Lowest version of Android to support
+        // This restricts which devices can install this app
         minSdk = 24
+        // Sets the runtime behaviour of this app
+        // Must be less than or equal to compileSdk which provides access to new APIs
+        // If app runs on higher API level than targetSdk level, it runs on compatibility mode
+        // On compatibility mode, the app behaves similarly to the lower version indicated in targeSdk
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -39,6 +48,7 @@ android {
     }
 }
 
+// Specifies dependencies required to build this module.
 dependencies {
 
     // initial dependencies
