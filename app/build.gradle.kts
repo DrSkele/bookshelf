@@ -46,6 +46,9 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    viewBinding {
+        enable = true
+    }
 }
 
 // Specifies dependencies required to build this module.
@@ -81,4 +84,10 @@ dependencies {
     testImplementation("androidx.room:room-testing:$room_version")
     // optional - Paging 3 Integration
     implementation("androidx.room:room-paging:$room_version")
+
+    // fragment dependencies
+    val fragment_version = "1.6.2"
+    // Kotlin
+    implementation("androidx.fragment:fragment-ktx:$fragment_version")
+
 }
