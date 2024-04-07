@@ -1,6 +1,7 @@
 package com.skele.bookshelf.sqlite
 
-import java.util.Date
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 data class Task(
     val id: Long,
@@ -9,4 +10,7 @@ data class Task(
     var description: String?,
     val regDate: Long,
     var dueDate: Long?,
-    )
+    ){
+
+    val dueDateFormat : String = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(dueDate)
+}
