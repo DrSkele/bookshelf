@@ -18,9 +18,6 @@
             android:exported="false"></service>
 
         <activity
-            android:name=".TaskActivity"
-            android:exported="false" />
-        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

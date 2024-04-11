@@ -5,8 +5,10 @@ import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
 import android.os.Binder
 import android.os.IBinder
+import android.util.Log
 import com.skele.bookshelf.sqlite.TaskSqliteDao
 
+private const val TAG = "TaskSqliteService"
 class TaskSqliteService : Service() {
 
     lateinit var database: TaskSqliteDao
@@ -18,10 +20,10 @@ class TaskSqliteService : Service() {
     }
 
     //service lifecycle
-
     override fun onCreate() {
         super.onCreate()
         database = TaskSqliteDao(this, TaskSqliteDao.DB_NAME, null, 1)
+        Log.d(TAG, "onCreate: $database")
     }
 
     override fun onBind(intent: Intent): IBinder {
@@ -35,6 +37,4 @@ class TaskSqliteService : Service() {
     override fun onDestroy() {
         super.onDestroy()
     }
-
-
 }

@@ -1,51 +1,59 @@
 package com.skele.bookshelf.fragment
 
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
+import android.os.IBinder
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.skele.bookshelf.MainActivity
-import com.skele.bookshelf.R
 import com.skele.bookshelf.databinding.FragmentTaskBinding
+import com.skele.bookshelf.recyclerview.TaskAdapter
+import com.skele.bookshelf.service.TaskSqliteService
 
 private const val ARG_PARAM1 = "param1"
+private const val TAG = "TaskFragment"
 
-/**
- * A fragment represents a reusable portion of your app's UI.
- * A fragment defines and manages its own layout, has its own lifecycle, and can handle its own input events.
- * Fragments can't live on their own. They must be hosted by an activity or another fragment.
- * The fragment’s view hierarchy becomes part of, or attaches to, the host’s view hierarchy.
- *
- * Fragments introduce modularity and reusability into activity’s UI by dividing the UI into discrete chunks.
- * While activity is in the STARTED lifecycle state or higher, fragments can be added, replaced, or removed.
- * And keeping record of these changes in a back stack that is managed by the activity, so that the changes can be reversed.
- *
- * [link : fragments doc](https://developer.android.com/guide/fragments)
- */
-class TaskFragment private constructor() : Fragment() {
+class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>() {
 
     private var param1: String? = null
-
-    private var _binding : FragmentTaskBinding? = null
-    private val binding get() = _binding!!
 
     // Reference to the holder activity
     // Because fragment cannot exist without an activity, it's guaranteed to access the host activity.
     lateinit var activity: MainActivity
 
-    // Called when fragment is attached to the activity or fragment
-    // Pair with 'onDetach()'
+    lateinit var adapter : TaskAdapter
+
+    private lateinit var dbService:TaskSqliteService
+    private var isBound = false;
+    private val serviceConnection = object : ServiceConnection{
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            val binder = service as TaskSqliteService.ServiceBinder
+            dbService = binder.getService()
+            Log.d(TAG, "onServiceConnected: ${dbService.database}")
+            adapter.list = dbService.database.selectAll()
+            adapter.notifyDataSetChanged()
+            isBound = true;
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            isBound = false;
+        }
+    }
+    override fun inflateView(inflater: LayoutInflater, container: ViewGroup?): FragmentTaskBinding {
+        return FragmentTaskBinding.inflate(inflater, container, false)
+    }
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
         activity = context as MainActivity
     }
-
-    // Provided arguments are taken out and assigned as field.
-    // Since the view is not created yet, cannot perform UI initializations here.
-    // It can be done in `onViewCreated`.
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // get field variables from the argument
@@ -53,63 +61,38 @@ class TaskFragment private constructor() : Fragment() {
             param1 = it.getString(ARG_PARAM1)
         }
     }
-
-    // Inflates and create view
-    // Pair with `onDestroyView`
-    // It's safer to initialize UI on `onViewCreated` since the view is in creation process.
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentTaskBinding.inflate(inflater, container, false)
         return binding.root
     }
-
-    // Completed creating the view
-    // UI initializations and adding listeners are done here.
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        adapter = TaskAdapter(listOf())
+        binding.recyclerView.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+        binding.recyclerView.adapter = adapter
+        binding.button.setOnClickListener{
+            adapter.list = dbService.database.selectAll()
+        }
     }
-
-    // Visible to the user.
     override fun onStart() {
         super.onStart()
-    }
 
-    // Fragment is visible and has focus.
-    override fun onResume() {
-        super.onResume()
+        // connect the service
+        if(isBound == false){
+            val intent = Intent(activity, TaskSqliteService::class.java)
+            activity.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+        }
     }
-
-    // User no longer has interaction with the fragment.
-    // Save state to be persisted.
-    override fun onPause() {
-        super.onPause()
-    }
-
-    // No longer visible to the user
     override fun onStop() {
         super.onStop()
-    }
 
-    // Fragment and view has different life cycle.
-    // Fragment can be alive even if the view is destroyed.
-    override fun onDestroyView() {
-        super.onDestroyView()
-
-        // With the viewbinding, reference to the view stays alive even after the `onDestroyView()`.
-        // Thus, the view must be detached from the fragment in order to avoid memory leak.
-        _binding = null
+        // disconnect service
+        if(isBound){
+            activity.unbindService(serviceConnection)
+        }
     }
-    // Fragment is being destroyed.
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-    // Fragment is being removed from the activity.
-    override fun onDetach() {
-        super.onDetach()
-    }
-
     companion object {
         /**
          * Supply arguments with setArguments and later retrieved by the Fragment with getArguments.

@@ -2,15 +2,20 @@ package com.skele.bookshelf
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import com.skele.bookshelf.databinding.ActivityMainBinding
 import com.skele.bookshelf.fragment.TaskFragment
 
 class MainActivity : AppCompatActivity() {
+
+    private val binding : ActivityMainBinding by lazy{
+        ActivityMainBinding.inflate(layoutInflater)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(binding.root)
 
-        //
-
+        addFragment()
+        BIND_AUTO_CREATE
     }
 
 
@@ -31,7 +36,7 @@ class MainActivity : AppCompatActivity() {
     fun addFragment(){
         supportFragmentManager
             .beginTransaction()
-            .add(R.id.fragment_container, TaskFragment.newInstance("parameter"))
+            .add(R.id.main_frame, TaskFragment.newInstance("parameter"))
             .commit()
     }
 

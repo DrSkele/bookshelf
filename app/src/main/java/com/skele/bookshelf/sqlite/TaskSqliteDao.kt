@@ -19,6 +19,8 @@ class TaskSqliteDao(context: Context, dbName: String, factory: CursorFactory?, v
     private val TASK_DUE_DATE = Task::dueDate.name
 
     lateinit var database: SQLiteDatabase
+
+    // Creation of table.
     override fun onCreate(db: SQLiteDatabase?) {
         db!!.execSQL("""
             CREATE TABLE IF NOT EXISTS $TABLE_NAME (
@@ -27,16 +29,20 @@ class TaskSqliteDao(context: Context, dbName: String, factory: CursorFactory?, v
                 $TASK_TITLE TEXT,
                 $TASK_DESCRIPTION TEXT,
                 $TASK_REG_DATE LONG,
-                $TASK_DUE_DATE LONG,
-            )
+                $TASK_DUE_DATE LONG
+            );
         """.trimIndent())
     }
 
-    override fun onOpen(db: SQLiteDatabase?) {
+
+    // CAUTION : onOpen is called when the database is 'opened', not on 'created'.
+    //           Database is opened when 'getReadableDatabase()' or 'getWritableDatabase()' is called.
+    //           It's not possible to gain reference of database here and use it on query or any SQL execution, because database does not open until that execution happens.
+    override fun onOpen(db: SQLiteDatabase) {
         super.onOpen(db)
-        database = db!!
     }
 
+    // Called on version upgrade.
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
         db!!.execSQL("""
             DROP TABLE IF EXISTS $TABLE_NAME
@@ -65,7 +71,7 @@ class TaskSqliteDao(context: Context, dbName: String, factory: CursorFactory?, v
 
     fun selectAll() : List<Task> {
         val list = mutableListOf<Task>()
-        database.rawQuery("""
+        readableDatabase.rawQuery("""
             SELECT $TASK_ID, $TASK_PRIORITY, $TASK_TITLE, $TASK_DESCRIPTION, $TASK_REG_DATE, $TASK_DUE_DATE
             FROM $TABLE_NAME
         """.trimIndent(), null)

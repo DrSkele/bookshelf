@@ -7,7 +7,7 @@ import com.skele.bookshelf.databinding.ListItemTaskBinding
 import com.skele.bookshelf.sqlite.Task
 
 
-class TaskAdapter(private val list : List<Task>) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>(){
+class TaskAdapter(var list : List<Task>) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>(){
 
     // Reusable container of the view displaying the item.
     // ViewHolder only caches its view which binds to different item when `onBindViewHolder` is called.
