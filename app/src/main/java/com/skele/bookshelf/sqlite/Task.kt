@@ -1,6 +1,7 @@
 package com.skele.bookshelf.sqlite
 
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 
 data class Task(
@@ -12,5 +13,12 @@ data class Task(
     var dueDate: Long?,
     ){
 
-    val dueDateFormat : String = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(dueDate)
+    val dueDateFormat : String = if(dueDate != null) SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(dueDate) else ""
+
+    constructor(
+        priority: Int,
+        title: String,
+        description: String?,
+        dueDate: Long? = null
+    ) : this(-1, priority, title, description, Calendar.getInstance(Locale.KOREA).timeInMillis, dueDate)
 }

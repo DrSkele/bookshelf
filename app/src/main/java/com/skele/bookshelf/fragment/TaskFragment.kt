@@ -6,45 +6,136 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.skele.bookshelf.MainActivity
+import com.skele.bookshelf.R
+import com.skele.bookshelf.databinding.BottomsheetContentBinding
 import com.skele.bookshelf.databinding.FragmentTaskBinding
 import com.skele.bookshelf.recyclerview.TaskAdapter
 import com.skele.bookshelf.service.TaskSqliteService
+import com.skele.bookshelf.sqlite.Task
+import java.util.Calendar
+import java.util.Locale
 
-private const val ARG_PARAM1 = "param1"
 private const val TAG = "TaskFragment"
 
 class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>(FragmentTaskBinding::inflate) {
 
-    private var param1: String? = null
-
     // Reference to the holder activity
     // Because fragment cannot exist without an activity, it's guaranteed to access the host activity.
-    lateinit var activity: MainActivity
+    private lateinit var activity: MainActivity
 
-    lateinit var adapter : TaskAdapter
+    // Recycler View Adapter
+    private lateinit var adapter : TaskAdapter
 
+    // BottomSheet
+    private var _bottomSheetBinding : BottomsheetContentBinding? = null
+    private val bottomSheetBinding get() = _bottomSheetBinding!!
+    private lateinit var bottomSheet : BottomSheetDialog
+    private var isEdit : Boolean = false
+    private var editItem : Task? = null
+    private var calendar : Calendar = Calendar.getInstance(Locale.KOREA)
+
+    // Database Service
     private lateinit var dbService:TaskSqliteService
     private var isBound = false;
     private val serviceConnection = object : ServiceConnection{
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as TaskSqliteService.ServiceBinder
             dbService = binder.getService()
-            Log.d(TAG, "onServiceConnected: ${dbService.database}")
-            adapter.list = dbService.database.selectAll()
-            adapter.notifyDataSetChanged()
+            adapter.submitList(dbService.selectAll())
             isBound = true;
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
             isBound = false;
         }
+    }
+
+    /**
+     * Initializes fragment views in this fragment.
+     * Registration for event listeners are done here.
+     */
+    private fun initView(){
+        adapter = TaskAdapter()
+        adapter.setOnListItemClickListener{
+            openBottomSheet(it)
+        }
+        binding.recyclerView.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+        binding.recyclerView.adapter = adapter
+
+        binding.toolbar.setOnMenuItemClickListener {item->
+            when(item.itemId){
+                R.id.add_button -> {
+                    openBottomSheet()
+                }
+            }
+            true
+        }
+    }
+
+    /**
+     * Initializes bottom sheet used in this fragment.
+     * BottomSheet contains input forms for creating new item or updating item.
+     */
+    private fun initBottomSheet(){
+        bottomSheet = BottomSheetDialog(activity)
+        bottomSheet.setContentView(bottomSheetBinding.root)
+        bottomSheet.dismissWithAnimation = true
+        bottomSheetBinding.saveButton.setOnClickListener{
+            saveTask()
+        }
+        bottomSheetBinding.calendarView.setOnDateChangeListener { view, year, month, dayOfMonth ->
+            calendar.set(year, month, dayOfMonth)
+        }
+    }
+
+    /**
+     * Saves item using information in the bottomsheet.
+     * Creates new item or Updates one depending on whether item was given when opening bottomsheet.
+     */
+    private fun saveTask(){
+        val title = bottomSheetBinding.titleEditText.text.toString()
+        val description = bottomSheetBinding.descEditText.text.toString()
+        if(title.isBlank()){
+            bottomSheetBinding.titleInputLayout.error = "title text required"
+        } else {
+            bottomSheetBinding.titleInputLayout.error = ""
+
+            if(isEdit){
+                editItem?.let{
+                    it.title = title
+                    it.description = description
+                    it.dueDate = calendar.timeInMillis
+                    dbService.update(it)
+                }
+            } else {
+                val createdTask = Task(0, title, description, calendar.timeInMillis)
+                dbService.insert(createdTask)
+            }
+            adapter.submitList(dbService.selectAll())
+
+            bottomSheet.dismiss()
+        }
+    }
+
+    /**
+     * Opens bottomsheet with given item.
+     * If none was given, creates new on saving.
+     */
+    fun openBottomSheet(item : Task? = null){
+
+        isEdit = item != null
+        editItem = item
+        bottomSheetBinding.titleEditText.setText(item?.title ?: "")
+        bottomSheetBinding.descEditText.setText(item?.description ?: "")
+        bottomSheetBinding.calendarView.date = item?.dueDate ?: Calendar.getInstance(Locale.KOREA).timeInMillis
+
+        bottomSheet.show()
     }
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -53,25 +144,20 @@ class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>(Fra
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // get field variables from the argument
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-        }
     }
+
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
-        return binding.root
+    ): View? {
+        _bottomSheetBinding = BottomsheetContentBinding.inflate(inflater, container, false)
+        return super.onCreateView(inflater, container, savedInstanceState)
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        adapter = TaskAdapter(listOf())
-        binding.recyclerView.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-        binding.recyclerView.adapter = adapter
-        binding.button.setOnClickListener{
-            adapter.list = dbService.database.selectAll()
-        }
+        initView()
+        initBottomSheet()
     }
     override fun onStart() {
         super.onStart()
@@ -97,12 +183,6 @@ class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>(Fra
          * Later, restore fragment using bundle provided in the arguments.
          */
         @JvmStatic
-        fun newInstance(param1: String) =
-            TaskFragment().apply {
-                // send parameters to fragment through arguments
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                }
-            }
+        fun newInstance(param1: String) = TaskFragment()
     }
 }

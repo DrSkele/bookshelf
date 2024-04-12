@@ -6,12 +6,33 @@ import android.database.sqlite.SQLiteDatabase
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
+import com.skele.bookshelf.sqlite.Task
 import com.skele.bookshelf.sqlite.TaskSqliteDao
 
 private const val TAG = "TaskSqliteService"
+
+/**
+ * Service for sqlite database.
+ *
+ * CAUTION : By default, service runs on main thread of the application.
+ *           Thus, it's synchronous with any context that has access to it.
+ *           If asynchronous operation is required, it must be done using a new thread.
+ */
 class TaskSqliteService : Service() {
 
-    lateinit var database: TaskSqliteDao
+    private lateinit var database: TaskSqliteDao
+
+    fun selectAll() : List<Task>{
+        return database.selectAll().toMutableList()
+    }
+
+    fun insert(item : Task) : Task? {
+        return database.insert(item)
+    }
+
+    fun update(item: Task) {
+        database.update(item)
+    }
 
     inner class ServiceBinder : Binder(){
         fun getService() : TaskSqliteService {

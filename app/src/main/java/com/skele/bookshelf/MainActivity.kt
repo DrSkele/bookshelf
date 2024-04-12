@@ -15,7 +15,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         addFragment()
-        BIND_AUTO_CREATE
     }
 
 

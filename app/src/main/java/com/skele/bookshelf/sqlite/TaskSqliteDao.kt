@@ -5,7 +5,11 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteDatabase.CursorFactory
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 
+/**
+ * SQLite Database access object.
+ */
 class TaskSqliteDao(context: Context, dbName: String, factory: CursorFactory?, version: Int) : SQLiteOpenHelper(context, dbName, factory, version){
     companion object{
         const val DB_NAME = "task_sqlite.db"
@@ -17,8 +21,6 @@ class TaskSqliteDao(context: Context, dbName: String, factory: CursorFactory?, v
     private val TASK_DESCRIPTION = Task::description.name
     private val TASK_REG_DATE = Task::regDate.name
     private val TASK_DUE_DATE = Task::dueDate.name
-
-    lateinit var database: SQLiteDatabase
 
     // Creation of table.
     override fun onCreate(db: SQLiteDatabase?) {
@@ -53,7 +55,7 @@ class TaskSqliteDao(context: Context, dbName: String, factory: CursorFactory?, v
         val columns = arrayOf(TASK_ID, TASK_PRIORITY, TASK_TITLE, TASK_DESCRIPTION, TASK_REG_DATE, TASK_DUE_DATE)
         val where = "$TASK_ID = ?"
         var task : Task? = null
-        database.query(TABLE_NAME, columns, where, arrayOf(id.toString()), null, null, null, null)
+        readableDatabase.query(TABLE_NAME, columns, where, arrayOf(id.toString()), null, null, null, null)
         .use { cursor ->
             if(cursor.moveToNext()){
                 task = Task(
@@ -92,7 +94,8 @@ class TaskSqliteDao(context: Context, dbName: String, factory: CursorFactory?, v
         return list
     }
 
-    fun insert(item : Task){
+    fun insert(item : Task) : Task? {
+        var inserted : Task? = null
         val contentValues = ContentValues().apply {
             put(TASK_PRIORITY, item.priority)
             put(TASK_TITLE, item.title)
@@ -100,9 +103,14 @@ class TaskSqliteDao(context: Context, dbName: String, factory: CursorFactory?, v
             put(TASK_REG_DATE, item.regDate)
             put(TASK_DUE_DATE, item.dueDate)
         }
-        database.beginTransaction()
-        database.insert(TABLE_NAME, null, contentValues)
-        database.endTransaction()
+        writableDatabase.beginTransaction()
+        val id = writableDatabase.insert(TABLE_NAME, null, contentValues)
+        if(id > 0) {
+            writableDatabase.setTransactionSuccessful()
+            inserted = item.copy(id = id)
+        }
+        writableDatabase.endTransaction()
+        return inserted
     }
 
     fun update(item : Task){
@@ -113,16 +121,22 @@ class TaskSqliteDao(context: Context, dbName: String, factory: CursorFactory?, v
             put(TASK_DUE_DATE, item.dueDate)
         }
         val where = "$TASK_ID = ?"
-        database.beginTransaction()
-        database.update(TABLE_NAME, contentValues, where, arrayOf(item.id.toString()))
-        database.endTransaction()
+        writableDatabase.beginTransaction()
+        val result = writableDatabase.update(TABLE_NAME, contentValues, where, arrayOf(item.id.toString()))
+        if(result > 0) {
+            writableDatabase.setTransactionSuccessful()
+        }
+        writableDatabase.endTransaction()
     }
 
     fun delete(item : Task){
         val where = "$TASK_ID = ?"
-        database.beginTransaction()
-        database.delete(TABLE_NAME, where, arrayOf(item.id.toString()))
-        database.endTransaction()
+        writableDatabase.beginTransaction()
+        val result = writableDatabase.delete(TABLE_NAME, where, arrayOf(item.id.toString()))
+        if(result > 0) {
+            writableDatabase.setTransactionSuccessful()
+        }
+        writableDatabase.endTransaction()
     }
 
 }
