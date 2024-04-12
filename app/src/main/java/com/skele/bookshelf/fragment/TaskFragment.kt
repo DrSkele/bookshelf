@@ -20,7 +20,7 @@ import com.skele.bookshelf.service.TaskSqliteService
 private const val ARG_PARAM1 = "param1"
 private const val TAG = "TaskFragment"
 
-class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>() {
+class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>(FragmentTaskBinding::inflate) {
 
     private var param1: String? = null
 
@@ -45,9 +45,6 @@ class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>() {
         override fun onServiceDisconnected(name: ComponentName?) {
             isBound = false;
         }
-    }
-    override fun inflateView(inflater: LayoutInflater, container: ViewGroup?): FragmentTaskBinding {
-        return FragmentTaskBinding.inflate(inflater, container, false)
     }
     override fun onAttach(context: Context) {
         super.onAttach(context)

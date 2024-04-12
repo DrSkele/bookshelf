@@ -21,16 +21,10 @@ import androidx.viewbinding.ViewBinding
  *
  * [link : fragments doc](https://developer.android.com/guide/fragments)
  */
-abstract  class BaseFragment<T : ViewBinding> : Fragment() {
+abstract  class BaseFragment<T : ViewBinding>(val inflateBinding : (inflater : LayoutInflater, container : ViewGroup?, attachToParent : Boolean) -> T) : Fragment() {
 
     private var _binding : T? = null
     protected val binding get() = _binding!!
-
-    /**
-     * Inflates ViewBinding used in the fragment.
-     */
-    abstract fun inflateView(inflater: LayoutInflater, container: ViewGroup?) : T
-
 
     // Called when fragment is attached to the activity or fragment
     // Pair with 'onDetach()'
@@ -53,8 +47,8 @@ abstract  class BaseFragment<T : ViewBinding> : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        _binding = inflateView(inflater, container)
-        return super.onCreateView(inflater, container, savedInstanceState)
+        _binding = inflateBinding(inflater, container, false)
+        return binding.root
     }
 
     // Completed creating the view
