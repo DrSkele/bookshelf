@@ -11,6 +11,7 @@ import com.skele.bookshelf.sqlite.Task
 
 class TaskAdapter : ListAdapter<Task, TaskAdapter.TaskViewHolder>(TaskDiffUtil()){
     private var onListItemClickListener: OnListItemClickListener<Task>? = null
+    private var onItemContextClickListener: OnItemContextClickListener<Task>? = null
 
     /**
      * Register a callback to be invoked when list item is clicked.
@@ -18,16 +19,25 @@ class TaskAdapter : ListAdapter<Task, TaskAdapter.TaskViewHolder>(TaskDiffUtil()
     fun setOnListItemClickListener(onListItemClickListener: OnListItemClickListener<Task>){
         this.onListItemClickListener = onListItemClickListener
     }
+    fun setOnItemContextClickListener(onItemContextClickListener: OnItemContextClickListener<Task>){
+        this.onItemContextClickListener = onItemContextClickListener
+    }
 
     // Reusable container of the view displaying the item.
     // ViewHolder only caches its view which binds to different item when `onBindViewHolder` is called.
     class TaskViewHolder(private val viewbinding : ListItemTaskBinding) : RecyclerView.ViewHolder(viewbinding.root){
-        fun bind(item : Task, onListItemClickListener: OnListItemClickListener<Task>?){
+        fun bind(item : Task, onListItemClickListener: OnListItemClickListener<Task>?, onItemContextClickListener: OnItemContextClickListener<Task>?){
+            Log.d("TAG_BIND", "bind: $item")
+
             viewbinding.taskTitleTextView.text = item.title
             viewbinding.taskDescriptionTextView.text = item.description
-            viewbinding.taskDueTextView.text = item.dueDateFormat
+            viewbinding.taskDueTextView.text = item.getDueDateFormat()
             viewbinding.cardView.setOnClickListener{
                 onListItemClickListener?.onClick(item)
+            }
+            viewbinding.cardView.setOnCreateContextMenuListener { menu, v, menuInfo ->
+                Log.d("TAG", "bind: context menu open $menu, $v, $menuInfo $item")
+                onItemContextClickListener?.onContextClick(menu, v, menuInfo, item)
             }
         }
     }
@@ -51,6 +61,6 @@ class TaskAdapter : ListAdapter<Task, TaskAdapter.TaskViewHolder>(TaskDiffUtil()
     //           Because of this, the position parameter cannot be kept to track the item's position.
     override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
         Log.d("TAG", "onBindViewHolder: ${getItem(position)}")
-        holder.bind(getItem(position), onListItemClickListener)
+        holder.bind(getItem(position), onListItemClickListener, onItemContextClickListener)
     }
 }

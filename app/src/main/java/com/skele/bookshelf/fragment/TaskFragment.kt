@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +16,7 @@ import com.skele.bookshelf.MainActivity
 import com.skele.bookshelf.R
 import com.skele.bookshelf.databinding.BottomsheetContentBinding
 import com.skele.bookshelf.databinding.FragmentTaskBinding
+import com.skele.bookshelf.recyclerview.OnItemContextClickListener
 import com.skele.bookshelf.recyclerview.TaskAdapter
 import com.skele.bookshelf.service.TaskSqliteService
 import com.skele.bookshelf.sqlite.Task
@@ -65,6 +67,14 @@ class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>(Fra
         adapter.setOnListItemClickListener{
             openBottomSheet(it)
         }
+        adapter.setOnItemContextClickListener{ menu, view, menuIten, item ->
+            val menuItem = menu.add("Delete")
+            menuItem?.setOnMenuItemClickListener {
+                dbService.delete(item)
+                adapter.submitList(dbService.selectAll())
+                false
+            }
+        }
         binding.recyclerView.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
         binding.recyclerView.adapter = adapter
 
@@ -108,21 +118,20 @@ class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>(Fra
 
             if(isEdit){
                 editItem?.let{
-                    it.title = title
-                    it.description = description
-                    it.dueDate = calendar.timeInMillis
-                    dbService.update(it)
+                    dbService.update(it.copy(title = title, description = description, dueDate = calendar.timeInMillis))
                 }
             } else {
                 val createdTask = Task(0, title, description, calendar.timeInMillis)
                 dbService.insert(createdTask)
             }
-            adapter.submitList(dbService.selectAll())
+            val list = dbService.selectAll()
+            Log.d(TAG, "saveTask: $list")
+            adapter.submitList(list)
+            //adapter.notifyDataSetChanged()
 
             bottomSheet.dismiss()
         }
     }
-
     /**
      * Opens bottomsheet with given item.
      * If none was given, creates new on saving.

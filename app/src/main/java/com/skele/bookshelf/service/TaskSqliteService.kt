@@ -22,7 +22,7 @@ class TaskSqliteService : Service() {
 
     private lateinit var database: TaskSqliteDao
 
-    fun selectAll() : List<Task>{
+    fun selectAll() : MutableList<Task>{
         return database.selectAll().toMutableList()
     }
 
@@ -32,6 +32,10 @@ class TaskSqliteService : Service() {
 
     fun update(item: Task) {
         database.update(item)
+    }
+
+    fun delete(item: Task){
+        database.delete(item)
     }
 
     inner class ServiceBinder : Binder(){
@@ -45,6 +49,10 @@ class TaskSqliteService : Service() {
         super.onCreate()
         database = TaskSqliteDao(this, TaskSqliteDao.DB_NAME, null, 1)
         Log.d(TAG, "onCreate: $database")
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onBind(intent: Intent): IBinder {

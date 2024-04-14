@@ -13,7 +13,7 @@ data class Task(
     var dueDate: Long?,
     ){
 
-    val dueDateFormat : String = if(dueDate != null) SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(dueDate) else ""
+    fun getDueDateFormat() : String = if(dueDate != null) SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(dueDate) else ""
 
     constructor(
         priority: Int,
