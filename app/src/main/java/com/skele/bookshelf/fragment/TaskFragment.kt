@@ -10,16 +10,19 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.skele.bookshelf.MainActivity
 import com.skele.bookshelf.R
 import com.skele.bookshelf.databinding.BottomsheetContentBinding
 import com.skele.bookshelf.databinding.FragmentTaskBinding
-import com.skele.bookshelf.recyclerview.OnItemContextClickListener
+import com.skele.bookshelf.permission.PermissionChecker
 import com.skele.bookshelf.recyclerview.TaskAdapter
 import com.skele.bookshelf.service.TaskSqliteService
 import com.skele.bookshelf.sqlite.Task
+import com.vmadalin.easypermissions.EasyPermissions
+import com.vmadalin.easypermissions.dialogs.SettingsDialog
 import java.util.Calendar
 import java.util.Locale
 
@@ -41,6 +44,9 @@ class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>(Fra
     private var isEdit : Boolean = false
     private var editItem : Task? = null
     private var calendar : Calendar = Calendar.getInstance(Locale.KOREA)
+
+    // Permission
+    private lateinit var permissionChecker : PermissionChecker
 
     // Database Service
     private lateinit var dbService:TaskSqliteService
@@ -146,6 +152,15 @@ class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>(Fra
 
         bottomSheet.show()
     }
+
+    private fun checkPermission(){
+        if(permissionChecker.hasPermission()){
+            Toast.makeText(requireContext(), "Has Permission", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(requireContext(), "No Permission", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
@@ -153,6 +168,7 @@ class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>(Fra
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        permissionChecker = PermissionChecker(this, requireContext())
     }
 
     override fun onCreateView(
@@ -161,6 +177,10 @@ class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>(Fra
         savedInstanceState: Bundle?
     ): View? {
         _bottomSheetBinding = BottomsheetContentBinding.inflate(inflater, container, false)
+
+        permissionChecker.requestPermission()
+        checkPermission()
+
         return super.onCreateView(inflater, container, savedInstanceState)
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

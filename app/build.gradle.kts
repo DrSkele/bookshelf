@@ -90,4 +90,8 @@ dependencies {
     // Kotlin
     implementation("androidx.fragment:fragment-ktx:$fragment_version")
 
+    // permission dependencies
+    // https://github.com/VMadalin/easypermissions-ktx
+    implementation ("com.vmadalin:easypermissions-ktx:1.0.0")
+
 }
