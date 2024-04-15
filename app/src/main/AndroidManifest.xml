@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -15,9 +15,13 @@
         android:theme="@style/Theme.BookShelf"
         tools:targetApi="31">
         <service
-            android:name=".service.TaskSqliteService"
+            android:name=".service.TaskNotificationService"
             android:enabled="true"
             android:exported="false"></service>
+        <service
+            android:name=".service.TaskSqliteService"
+            android:enabled="true"
+            android:exported="false" />
 
         <activity
             android:name=".MainActivity"
