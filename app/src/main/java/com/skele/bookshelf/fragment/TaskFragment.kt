@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
@@ -11,9 +12,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.skele.bookshelf.MainActivity
+import com.skele.bookshelf.Manifest
 import com.skele.bookshelf.R
 import com.skele.bookshelf.databinding.BottomsheetContentBinding
 import com.skele.bookshelf.databinding.FragmentTaskBinding
@@ -47,6 +50,8 @@ class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>(Fra
 
     // Permission
     private lateinit var permissionChecker : PermissionChecker
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private val requiredPermissions = arrayOf(android.Manifest.permission.POST_NOTIFICATIONS)
 
     // Database Service
     private lateinit var dbService:TaskSqliteService
@@ -153,12 +158,8 @@ class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>(Fra
         bottomSheet.show()
     }
 
-    private fun checkPermission(){
-        if(permissionChecker.hasPermission()){
-            Toast.makeText(requireContext(), "Has Permission", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(requireContext(), "No Permission", Toast.LENGTH_SHORT).show()
-        }
+    private fun checkPermission() : Boolean{
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && permissionChecker.checkPermission(activity, requiredPermissions)
     }
 
     override fun onAttach(context: Context) {
@@ -168,7 +169,7 @@ class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>(Fra
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        permissionChecker = PermissionChecker(this, requireContext())
+        permissionChecker = PermissionChecker(this)
     }
 
     override fun onCreateView(
@@ -178,7 +179,6 @@ class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>(Fra
     ): View? {
         _bottomSheetBinding = BottomsheetContentBinding.inflate(inflater, container, false)
 
-        permissionChecker.requestPermission()
         checkPermission()
 
         return super.onCreateView(inflater, container, savedInstanceState)
@@ -203,6 +203,7 @@ class TaskFragment private constructor() : BaseFragment<FragmentTaskBinding>(Fra
         // disconnect service
         if(isBound){
             activity.unbindService(serviceConnection)
+            isBound = false
         }
     }
     companion object {

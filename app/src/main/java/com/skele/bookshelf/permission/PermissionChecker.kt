@@ -15,34 +15,51 @@ import androidx.fragment.app.Fragment
 
 /**
  * Permission Handler
- * Uses EasyPermissions plugin
+ * @param activityOrFragment pass an activity or fragment for showing permission dialogs.
  */
-class PermissionChecker(val activityOrFragment : Any?) {
+class PermissionChecker(private val activityOrFragment : Any?) {
     private lateinit var context: Context
 
     private var grantListener : OnGrantedListener? = null
     private var rejectionListener : OnRejectedListener? = null
+
+    /**
+     * Set a listener for permission grant event.
+     * Called when all permissions are granted.
+     * If one or more permissions are rejected, RejectedListener is called instead.
+     * By default, a toast is shown on granted.
+     */
     fun setOnGrantedListener(listener: OnGrantedListener){
         grantListener = listener
     }
+
+    /**
+     * Set a listener for permission rejection event.
+     * Called when one or more permissions are rejected.
+     * By default, a toast is shown on granted.
+     */
     fun setOnRejectedListener(listener: OnRejectedListener){
         rejectionListener = listener
     }
 
-    // 권한 체크
-    fun checkPermission(context: Context, permissions: Array<String>): Boolean {
+    /**
+     * Checks for permissions.
+     * @param context context for permission check.
+     * @param permissions array of permissions to check. ( see Manifest.permissions )
+     * @param launchForPermission whether to launch a permission request on permissions are not granted.
+     */
+    fun checkPermission(context: Context, permissions: Array<String>, launchForPermission : Boolean = true): Boolean {
         this.context = context
         for (permission in permissions) {
             if (ActivityCompat.checkSelfPermission( context, permission ) != PackageManager.PERMISSION_GRANTED ) {
+                if(launchForPermission) requestPermissionLauncher.launch(permissions)
                 return false
             }
         }
-
         return true
     }
 
-    // 권한 호출한 이후 결과받아서 처리할 Launcher (startPermissionRequestResult )
-    val requestPermissionLauncher: ActivityResultLauncher<Array<String>> = when (activityOrFragment) {
+    private val requestPermissionLauncher: ActivityResultLauncher<Array<String>> = when (activityOrFragment) {
         is AppCompatActivity -> {
             activityOrFragment.registerForActivityResult(
                 ActivityResultContracts.RequestMultiplePermissions()){
@@ -68,31 +85,30 @@ class PermissionChecker(val activityOrFragment : Any?) {
     }
 
     private val defaultGrant = OnGrantedListener{
-        Toast.makeText(context, "모든 권한이 허가되었습니다.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "All permissions are granted.", Toast.LENGTH_SHORT).show()
     }
 
     private fun checkPermissionRequest(result: Map<String, Boolean>){
         val onRejected = rejectionListener ?: defaultRejection
         val onGranted = grantListener ?: defaultGrant
-        if(result.values.contains(false)){ //false가 있는 경우라면..
+        if(result.values.contains(false)){
             onRejected.onRejected()
         }else{
-            grantListener?.onGranted()
+            onGranted.onGranted()
         }
     }
 
-    //사용자가 권한을 허용하지 않았을때, 설정창으로 이동
     fun moveToSettings() {
         val alertDialog = AlertDialog.Builder( context )
-        alertDialog.setTitle("권한이 필요합니다.")
-        alertDialog.setMessage("설정으로 이동합니다.")
-        alertDialog.setPositiveButton("확인") { dialogInterface, i -> // 안드로이드 버전에 따라 다를 수 있음.
+        alertDialog.setTitle("Permission required.")
+        alertDialog.setMessage("Grant permissions in settings?")
+        alertDialog.setPositiveButton("OK") { dialogInterface, _ ->
             val intent =
                 Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).setData(Uri.parse("package:" + context.packageName))
             context.startActivity(intent)
             dialogInterface.cancel()
         }
-        alertDialog.setNegativeButton("취소") { dialogInterface, i -> dialogInterface.cancel() }
+        alertDialog.setNegativeButton("Cancel") { dialogInterface, _ -> dialogInterface.cancel() }
         alertDialog.show()
     }
 }
