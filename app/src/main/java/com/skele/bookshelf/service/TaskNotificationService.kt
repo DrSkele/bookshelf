@@ -15,6 +15,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.skele.bookshelf.MainActivity
+import com.skele.bookshelf.NotificationActions
+import com.skele.bookshelf.TaskNotification
 import com.skele.bookshelf.permission.PermissionChecker
 import com.vmadalin.easypermissions.EasyPermissions
 
@@ -22,70 +24,48 @@ class TaskNotificationService : Service() {
 
     lateinit var builder: NotificationCompat.Builder
 
-    private fun createNotificationChannel(){
+    private fun startForegroundService(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "R.string.channel_name"
-            val descriptionText = "description"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
-                description = descriptionText
-            }
+            val channel = NotificationChannel(
+                TaskNotification.CHANNEL_ID,
+                TaskNotification.CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_LOW
+            )
+            // 알림 등록
             // Register the channel with the system.
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
+
+        val notification = TaskNotification.create(this)
+        startForeground(NOTIFICATION_ID, notification)
     }
-
-    private fun createNotification(){
-
-        val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-
-        builder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("My notification")
-            .setContentText("Hello World!")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
+    private fun endRoregroundService(){
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
     }
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-    private fun showNotification(){
-        with(NotificationManagerCompat.from(this)) {
-            if (ActivityCompat.checkSelfPermission(
-                    this@TaskNotificationService,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                return
+        when(intent?.action){
+            NotificationActions.STOP -> {
+
             }
-            notify(NOTIFICATION_ID, builder.build())
         }
+        return START_STICKY
     }
-
     inner class ServiceBinder : Binder(){
         fun getService() : TaskNotificationService {
             return this@TaskNotificationService
         }
     }
+    override fun onBind(intent: Intent): IBinder {
+        return ServiceBinder()
+    }
 
     override fun onCreate() {
         super.onCreate()
     }
-    override fun onBind(intent: Intent): IBinder {
-
-        return ServiceBinder()
-    }
-
 
     companion object{
         const val NOTIFICATION_ID = 1
