@@ -1,6 +1,7 @@
 package com.skele.jetpack.data
 
 import android.content.Context
+import androidx.lifecycle.LiveData
 import androidx.room.Room
 
 /**
@@ -22,10 +23,10 @@ class MemoRepository private constructor(context : Context){
 
     private val memoDao = database.memoDao()
 
-    suspend fun getAllMemos() : List<Memo>{
+    fun getAllMemos() : LiveData<List<Memo>>{
         return memoDao.getAll()
     }
-    suspend fun getMemo(id : Long) : Memo{
+    fun getMemo(id : Long) : LiveData<Memo>{
         return memoDao.get(id)
     }
     suspend fun insertMemo(item : Memo) : Long{

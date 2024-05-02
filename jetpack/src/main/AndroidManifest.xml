@@ -9,7 +9,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BookShelf">
         <activity
-            android:name=".MainActivity"
+            android:name=".main.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

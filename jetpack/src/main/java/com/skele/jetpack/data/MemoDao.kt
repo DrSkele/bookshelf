@@ -1,5 +1,6 @@
 package com.skele.jetpack.data
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -18,9 +19,9 @@ import androidx.room.Update
 @Dao
 interface MemoDao {
     @Query("SELECT id, title, content, regDate FROM memo WHERE id = (:id)")
-    suspend fun get(id : Long) : Memo
+    fun get(id : Long) : LiveData<Memo>
     @Query("SELECT id, title, content, regDate FROM memo")
-    suspend fun getAll() : List<Memo>
+    fun getAll() : LiveData<List<Memo>>
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(item : Memo) : Long
     @Insert(onConflict = OnConflictStrategy.ABORT)

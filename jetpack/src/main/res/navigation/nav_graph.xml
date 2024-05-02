@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/listFragment"
-        android:name="com.skele.jetpack.fragment.ListFragment"
+        android:name="com.skele.jetpack.main.list.ListFragment"
         android:label="fragment_list"
         tools:layout="@layout/fragment_list" >
         <action
@@ -16,7 +16,7 @@
     </fragment>
     <fragment
         android:id="@+id/writeFragment"
-        android:name="com.skele.jetpack.fragment.WriteFragment"
+        android:name="com.skele.jetpack.main.write.WriteFragment"
         android:label="fragment_write"
         tools:layout="@layout/fragment_write" />
 </navigation>

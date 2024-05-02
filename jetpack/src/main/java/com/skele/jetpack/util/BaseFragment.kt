@@ -1,4 +1,4 @@
-package com.skele.jetpack.fragment
+package com.skele.jetpack.util
 
 import android.os.Bundle
 import android.view.LayoutInflater
