@@ -18,10 +18,12 @@ import androidx.room.Update
  */
 @Dao
 interface MemoDao {
-    @Query("SELECT id, title, content, regDate FROM memo WHERE id = (:id)")
-    fun get(id : Long) : LiveData<Memo>
-    @Query("SELECT id, title, content, regDate FROM memo")
+    @Query("SELECT * FROM memo")
     fun getAll() : LiveData<List<Memo>>
+    @Query("SELECT * FROM memo WHERE id = (:id)")
+    fun get(id : Long) : LiveData<Memo>
+    @Query("SELECT * FROM memo WHERE id = (:id)")
+    suspend fun select(id : Long) : Memo?
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(item : Memo) : Long
     @Insert(onConflict = OnConflictStrategy.ABORT)

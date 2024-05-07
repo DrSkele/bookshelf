@@ -18,5 +18,13 @@
         android:id="@+id/writeFragment"
         android:name="com.skele.jetpack.main.write.WriteFragment"
         android:label="fragment_write"
-        tools:layout="@layout/fragment_write" />
+        tools:layout="@layout/fragment_write" >
+        <action
+            android:id="@+id/action_writeFragment_to_calendarDialog"
+            app:destination="@id/calendarDialog" />
+    </fragment>
+    <dialog
+        android:id="@+id/calendarDialog"
+        android:name="com.skele.jetpack.main.write.CalendarDialog"
+        android:label="CalendarDialog" />
 </navigation>

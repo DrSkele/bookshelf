@@ -39,6 +39,9 @@ class MemoViewModel : ViewModel() {
     fun getMemo(id : Long) : LiveData<Memo>{
         return repository.getMemo(id)
     }
+    suspend fun selectMemo(id : Long) : Memo?{
+        return repository.selectMemo(id)
+    }
     fun insert(item : Memo){
         viewModelScope.launch {
             repository.insertMemo(item)

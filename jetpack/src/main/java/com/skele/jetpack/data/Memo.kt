@@ -21,9 +21,11 @@ data class Memo(
     @PrimaryKey(autoGenerate = true) var id : Long = 0,
     val title : String,
     val content : String,
-    val regDate : Long
+    val regDate : Long,
+    val hasDue : Boolean,
+    val dueDate : Long,
 ){
     // When autoGenerate is set to true on primary key,
     // insert method treats 0 or null as 'not-set' while inserting the item.
-    constructor(title: String, body: String, regDate: Long) : this(0, title, body, regDate)
+    constructor(title: String, content: String, regDate: Long, isUsing: Boolean, dueDate: Long) : this(0, title, content, regDate, isUsing, dueDate)
 }

@@ -29,6 +29,9 @@ class MemoRepository private constructor(context : Context){
     fun getMemo(id : Long) : LiveData<Memo>{
         return memoDao.get(id)
     }
+    suspend fun selectMemo(id : Long) : Memo?{
+        return memoDao.select(id)
+    }
     suspend fun insertMemo(item : Memo) : Long{
         return memoDao.insert(item)
     }
