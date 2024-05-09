@@ -9,6 +9,8 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+
+
 android {
     namespace = "com.skele.bookshelf"
     // Determines which Android and Java APIs are available when compiling source code.

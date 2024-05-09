@@ -28,7 +28,7 @@ class WriteFragment : BaseFragment<FragmentWriteBinding>(FragmentWriteBinding::i
     private fun initData(){
         writeViewModel.setDate(Date().time)
         arguments?.getLong(Memo::id.name)?.let { id ->
-            writeViewModel.setId(id)
+            writeViewModel.id = id
         }
     }
     private fun initView(item : Memo? = null){

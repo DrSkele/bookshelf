@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 rootProject.name = "BookShelf"
 include(":app")
 include(":jetpack")
+include(":http")

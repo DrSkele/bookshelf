@@ -10,14 +10,11 @@ import java.util.Date
 
 class WriteViewModel(private val handle: SavedStateHandle) : ViewModel() {
     var id = handle.get<Long>("id") ?: -1
-        private set(value : Long){
+        set(value : Long){
             handle["id"] = value
+            writeMode = WriteMode.EDIT
             field = value
         }
-    fun setId(value : Long){
-        id = value
-        writeMode = WriteMode.EDIT
-    }
     private var _memo = MutableLiveData<Memo>()
     val memo : LiveData<Memo> get() = _memo
     fun setMemo(value : Memo){

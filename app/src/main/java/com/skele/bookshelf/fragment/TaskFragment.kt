@@ -11,12 +11,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.skele.bookshelf.MainActivity
-import com.skele.bookshelf.Manifest
 import com.skele.bookshelf.R
 import com.skele.bookshelf.databinding.BottomsheetContentBinding
 import com.skele.bookshelf.databinding.FragmentTaskBinding
@@ -24,8 +22,6 @@ import com.skele.bookshelf.permission.PermissionChecker
 import com.skele.bookshelf.recyclerview.TaskAdapter
 import com.skele.bookshelf.service.TaskSqliteService
 import com.skele.bookshelf.sqlite.Task
-import com.vmadalin.easypermissions.EasyPermissions
-import com.vmadalin.easypermissions.dialogs.SettingsDialog
 import java.util.Calendar
 import java.util.Locale
 
