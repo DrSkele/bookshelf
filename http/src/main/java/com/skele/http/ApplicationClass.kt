@@ -23,11 +23,11 @@ class ApplicationClass : Application() {
             .readTimeout(5_000, TimeUnit.MILLISECONDS)
             .connectTimeout(5_000, TimeUnit.MILLISECONDS)
             .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)) // interceptor enables log of http transitions
-            .addInterceptor(HeaderInterceptor()) // interceptor for adding auth header
+            //.addInterceptor(HeaderInterceptor()) // interceptor for adding auth header
             .build()
 
         retrofit = Retrofit.Builder()
-            .baseUrl("")
+            .baseUrl(base_url)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()

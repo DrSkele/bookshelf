@@ -1,4 +1,4 @@
-package com.skele.http
+package com.skele.http.view
 
 import android.os.Bundle
 import android.view.LayoutInflater

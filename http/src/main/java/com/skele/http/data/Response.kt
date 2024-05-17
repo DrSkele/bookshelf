@@ -4,5 +4,5 @@ import com.google.gson.annotations.SerializedName
 
 data class ResponseData(
     @SerializedName("meta") val metaData: MetaData,
-    val documents : List<Document>
+    @SerializedName("documents") val documents : List<Document>
 )
