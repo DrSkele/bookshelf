@@ -17,3 +17,4 @@ rootProject.name = "BookShelf"
 include(":app")
 include(":jetpack")
 include(":http")
+include(":jetcompose")
