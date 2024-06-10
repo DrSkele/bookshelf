@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 
 @Composable
 fun TimerScreen(
+    timerState: TimerState,
     onOpenSetting : () -> Unit = {}
 ){
     Scaffold(
@@ -18,7 +19,10 @@ fun TimerScreen(
             )
         }
     ) { padding ->
-        Timer(modifier = Modifier.padding(padding))
+        TimerPage(
+            timerState = timerState,
+            modifier = Modifier.padding(padding)
+        )
     }
 }
 

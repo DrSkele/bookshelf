@@ -11,15 +11,16 @@ import androidx.compose.ui.graphics.Color
 @Composable
 fun SelectorButton(
     text : String,
-    selectorState: SelectorState
+    isSelected : Boolean,
+    onSelect : () -> Unit = {}
 ){
     Surface(
         modifier = Modifier
-            .clickable { selectorState.select(text) }
+            .clickable { onSelect() }
     ) {
         Text(
             text,
-            modifier = Modifier.background(color = if (selectorState.selected == text) Color.Cyan else Color.Gray)
+            modifier = Modifier.background(color = if (isSelected) Color.Cyan else Color.Gray)
         )
     }
 }

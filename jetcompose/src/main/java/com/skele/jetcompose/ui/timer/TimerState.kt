@@ -1,77 +1,97 @@
 package com.skele.jetcompose.ui.timer
 
-import androidx.compose.runtime.Composable
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.mapSaver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.lang.Integer.parseInt
 
 class TimerState(
-    initialType : TimerType,
-    initialTime : Int
+    pomo : Int,
+    short : Int,
+    long : Int
 ) {
-
-    init {
-        // TODO: time initial setting
-    }
-
-    var time by mutableIntStateOf(initialTime)
+    var time by mutableIntStateOf(pomo)
         private set
     var isPaused by mutableStateOf(true)
         private set
-    var type by mutableStateOf(initialType)
+    private val longbreakTerm = 4
+    var pomoCount by mutableIntStateOf(0)
         private set
+    var type by mutableStateOf(TimerType.POMODORO)
+        private set
+
+    var pomodoro by mutableIntStateOf(pomo)
+        private set
+    var shortBreak by mutableIntStateOf(short)
+        private set
+    var longBreak by mutableIntStateOf(long)
+        private set
+    var runningTimer : Job? = null
+    fun updateFromInput(type: TimerType, value : String){
+        if(value.isBlank()) return
+        try{
+            val parsedValue = parseInt(value)
+            when(type){
+                TimerType.POMODORO -> pomodoro = parsedValue
+                TimerType.SHORT_BREAK -> shortBreak = parsedValue
+                else -> longBreak = parsedValue
+            }
+            if(isPaused && this.type == type) time = parsedValue
+        } catch (e : Exception){
+            Log.d("TAG", "updateFromInput: InputFormat exception with $value")
+        }
+    }
+    fun startTickDown(){
+        runningTimer?.cancel()
+        runningTimer = CoroutineScope(Dispatchers.Default).launch {
+            tickDown()
+        }
+    }
     suspend fun tickDown() {
         while(time > 0 && !isPaused){
-            delay(1000)
             time--;
+            delay(1000)
         }
         if(time <= 0){
-            reset()
+            moveToNext()
+        }
+    }
+    private fun moveToNext() {
+        if(type == TimerType.POMODORO) {
+            pomoCount = (pomoCount++) % longbreakTerm
+
+            if(pomoCount == 0){
+                changeTimeType(TimerType.LONG_BREAK)
+            } else {
+                changeTimeType(TimerType.SHORT_BREAK)
+            }
+        } else {
+            changeTimeType(TimerType.POMODORO)
         }
     }
     fun changeTimeType(type : TimerType) {
         this.type = type
-        when(type){
-            TimerType.POMODORO -> time = 1500
-            TimerType.SHORT_BREAK -> time = 300
-            else -> time = 900
+        time = when(type){
+            TimerType.POMODORO -> pomodoro
+            TimerType.SHORT_BREAK -> shortBreak
+            else -> longBreak
         }
         pause()
-    }
-    fun reset() {
-        changeTimeType(type)
     }
     fun pause() {
         isPaused = true
     }
     fun resume() {
         isPaused = false
+        startTickDown()
     }
-
-    companion object{
-        val Saver : Saver<TimerState, *> = mapSaver(
-            save = { mapOf( "type" to it.type.toString(), "time" to it.time) },
-            restore = {
-                TimerState(
-                    initialType = TimerType.valueOf(it["type"] as String),
-                    initialTime = it["time"] as Int
-                )
-            }
-        )
-    }
-}
-
-@Composable
-fun rememberTimerState(
-    type : TimerType,
-    time : Int
-) = rememberSaveable(stateSaver = TimerState.Saver) {
-    mutableStateOf(TimerState(type, time))
 }
 
 enum class TimerType{

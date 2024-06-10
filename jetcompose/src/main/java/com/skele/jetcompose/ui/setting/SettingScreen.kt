@@ -18,18 +18,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.lang.Integer.parseInt
+import com.skele.jetcompose.ui.timer.TimerState
+import com.skele.jetcompose.ui.timer.TimerType
 
 @Composable
 fun SettingScreen(
+    timerState: TimerState,
     onBackPressed : () -> Unit = {}
 ){
-    val settingState = SettingsState(
-        initialPomoTime = 1500,
-        initialShortTime = 300,
-        initialLongTime = 900
-    )
-
     Scaffold(
         topBar = {
             SettingTopBar(
@@ -47,15 +43,18 @@ fun SettingScreen(
         ){
             RowTimeInput(
                 title = "Pomodoro",
-                settingState.pomodoro
+                value =  timerState.pomodoro.toString(),
+                onValueChanged = {value -> timerState.updateFromInput(TimerType.POMODORO, value)}
             )
             RowTimeInput(
                 title = "Short Break",
-                settingState.shortBreak
+                value = timerState.shortBreak.toString(),
+                onValueChanged = {value -> timerState.updateFromInput(TimerType.SHORT_BREAK, value)}
             )
             RowTimeInput(
                 title = "Long Break",
-                settingState.longBreak
+                value = timerState.longBreak.toString(),
+                onValueChanged = {value -> timerState.updateFromInput(TimerType.LONG_BREAK, value)}
             )
         }
     }
@@ -64,7 +63,8 @@ fun SettingScreen(
 @Composable
 fun RowTimeInput(
     title : String,
-    state : TimeInputState
+    value : String,
+    onValueChanged : (value : String) -> Unit = {}
 ){
     Row(
         verticalAlignment = Alignment.CenterVertically
@@ -77,9 +77,9 @@ fun RowTimeInput(
                 .padding(horizontal = 8.dp)
         )
         OutlinedTextField(
-            value = state.time.toString(),
-            onValueChange = { value -> state.updateTime(parseInt(value)) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            value = value,
+            onValueChange = onValueChanged,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             keyboardActions = KeyboardActions(onDone = null),
             singleLine = true,
             textStyle = TextStyle(textAlign = TextAlign.End, fontSize = 20.sp),
@@ -91,11 +91,11 @@ fun RowTimeInput(
 @Preview
 @Composable
 fun SettingScreenPreview(){
-    SettingScreen()
+    SettingScreen(TimerState(1500, 300, 900))
 }
 
 @Preview
 @Composable
 fun RowTimeInputPreview(){
-    RowTimeInput(title = "title", TimeInputState(0))
+    RowTimeInput(title = "title", "10")
 }

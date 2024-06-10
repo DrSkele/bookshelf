@@ -1,57 +1,39 @@
 package com.skele.jetcompose.ui.timer
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.skele.jetcompose.ui.components.SelectorButton
-import com.skele.jetcompose.ui.components.SelectorGroup
-import com.skele.jetcompose.ui.components.rememberSelectorState
 
 @Composable
-fun Timer(
+fun TimerPage(
+    timerState: TimerState,
     modifier: Modifier
 ){
-    val timerState by rememberTimerState(type = TimerType.POMODORO, time = 1500)
-    val selectorState by rememberSelectorState(initialValue = TimerType.POMODORO.toString())
-
-    LaunchedEffect(key1 = timerState.isPaused) {
-        timerState.tickDown()
-    }
-
     Surface(modifier = modifier.fillMaxSize()) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            SelectorGroup(
-                selectorState = selectorState,
-                onSelectionChange = { id ->
-                    Log.d("TAG", "Timer: $id")
-                    timerState.changeTimeType(TimerType.valueOf(id))
-                }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ){
-                SelectorButton(
-                    text = TimerType.POMODORO.toString(),
-                    selectorState = selectorState
-                )
-                SelectorButton(
-                    text = TimerType.SHORT_BREAK.toString(),
-                    selectorState = selectorState
-                )
-                SelectorButton(
-                    text = TimerType.LONG_BREAK.toString(),
-                    selectorState = selectorState
-                )
+                TimerType.entries.forEach {
+                    SelectorButton(
+                        text = it.toString(),
+                        isSelected = it == timerState.type,
+                        onSelect = { timerState.changeTimeType(it) }
+                    )
+                }
             }
             CountdownTimer(
                 time = timerState.time,
