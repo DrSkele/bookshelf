@@ -3,12 +3,14 @@ package com.skele.jetcompose.ui.timer
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.lang.Integer.parseInt
 
@@ -17,14 +19,14 @@ class TimerState(
     short : Int,
     long : Int
 ) {
-    var time by mutableIntStateOf(pomo)
-        private set
-    var isPaused by mutableStateOf(true)
-        private set
+    private var _timeFlow = MutableStateFlow(pomo)
+    val timeFlow : StateFlow<Int> = _timeFlow.asStateFlow()
+    private var _isPaused = MutableStateFlow(true)
+    var isPaused : StateFlow<Boolean> = _isPaused.asStateFlow()
+    private var _type = MutableStateFlow(TimerType.POMODORO)
+    var type : StateFlow<TimerType> = _type.asStateFlow()
     private val longbreakTerm = 4
     var pomoCount by mutableIntStateOf(0)
-        private set
-    var type by mutableStateOf(TimerType.POMODORO)
         private set
 
     var pomodoro by mutableIntStateOf(pomo)
@@ -43,7 +45,7 @@ class TimerState(
                 TimerType.SHORT_BREAK -> shortBreak = parsedValue
                 else -> longBreak = parsedValue
             }
-            if(isPaused && this.type == type) time = parsedValue
+            if(isPaused.value && this.type.value == type) _timeFlow.value = parsedValue
         } catch (e : Exception){
             Log.d("TAG", "updateFromInput: InputFormat exception with $value")
         }
@@ -55,18 +57,17 @@ class TimerState(
         }
     }
     suspend fun tickDown() {
-        while(time > 0 && !isPaused){
-            time--;
+        while(_timeFlow.value > 0 && !isPaused.value){
+            _timeFlow.value--;
             delay(1000)
         }
-        if(time <= 0){
+        if(_timeFlow.value <= 0){
             moveToNext()
         }
     }
     private fun moveToNext() {
-        if(type == TimerType.POMODORO) {
-            pomoCount = (pomoCount++) % longbreakTerm
-
+        if(type.value == TimerType.POMODORO) {
+            pomoCount = (pomoCount+1) % longbreakTerm
             if(pomoCount == 0){
                 changeTimeType(TimerType.LONG_BREAK)
             } else {
@@ -77,8 +78,8 @@ class TimerState(
         }
     }
     fun changeTimeType(type : TimerType) {
-        this.type = type
-        time = when(type){
+        _type.value = type
+        _timeFlow.value = when(type){
             TimerType.POMODORO -> pomodoro
             TimerType.SHORT_BREAK -> shortBreak
             else -> longBreak
@@ -86,16 +87,16 @@ class TimerState(
         pause()
     }
     fun pause() {
-        isPaused = true
+        _isPaused.value = true
     }
     fun resume() {
-        isPaused = false
+        _isPaused.value = false
         startTickDown()
     }
 }
 
-enum class TimerType{
-    POMODORO,
-    SHORT_BREAK,
-    LONG_BREAK
+enum class TimerType(val text : String){
+    POMODORO("Pomodoro"),
+    SHORT_BREAK("Short break"),
+    LONG_BREAK("Long break")
 }

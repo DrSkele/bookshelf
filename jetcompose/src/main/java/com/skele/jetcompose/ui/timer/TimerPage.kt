@@ -8,6 +8,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -20,6 +22,8 @@ fun TimerPage(
     modifier: Modifier
 ){
     Surface(modifier = modifier.fillMaxSize()) {
+        val time by timerState.timeFlow.collectAsState()
+        val isPaused by timerState.isPaused.collectAsState()
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -30,14 +34,14 @@ fun TimerPage(
                 TimerType.entries.forEach {
                     SelectorButton(
                         text = it.toString(),
-                        isSelected = it == timerState.type,
+                        isSelected = it == timerState.type.value,
                         onSelect = { timerState.changeTimeType(it) }
                     )
                 }
             }
             CountdownTimer(
-                time = timerState.time,
-                isPaused = timerState.isPaused,
+                time = time,
+                isPaused = isPaused,
                 onPause = { timerState.pause() },
                 onResume = { timerState.resume() }
             )
