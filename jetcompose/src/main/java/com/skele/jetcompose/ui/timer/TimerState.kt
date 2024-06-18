@@ -28,7 +28,6 @@ class TimerState(
     private val longbreakTerm = 4
     var pomoCount by mutableIntStateOf(0)
         private set
-
     var pomodoro by mutableIntStateOf(pomo)
         private set
     var shortBreak by mutableIntStateOf(short)

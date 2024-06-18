@@ -15,7 +15,7 @@ import androidx.core.app.ActivityCompat
 /**
  * Permission Handler
  */
-object PermissionChecker {
+class PermissionChecker {
     private lateinit var context: Context
 
     private var grantListener : OnGrantedListener? = null

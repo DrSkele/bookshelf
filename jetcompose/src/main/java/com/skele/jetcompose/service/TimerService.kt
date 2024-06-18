@@ -7,7 +7,11 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.os.Binder
 import android.os.Build
+import android.os.CombinedVibration
 import android.os.IBinder
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
@@ -20,23 +24,20 @@ import kotlinx.coroutines.launch
 
 class TimerService : LifecycleService() {
 
-    val timerState = TimerState(1500, 300, 900)
+    val timerState = TimerState(15, 3, 9)
 
     private val CHANNEL_ID = "foreground_timer"
     private val NOTIFICATION_ID = 99
     private var notificationBuilder : NotificationCompat.Builder? = null
 
 
+    private lateinit var activityIntent: Intent
+    private lateinit var activityPendingIntent: PendingIntent
     private lateinit var startPendingIntent: PendingIntent
     private lateinit var pausePendingIntent: PendingIntent
 
     fun createNotification() : Notification {
-        val notificationBodyIntent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val bodyPendingIntent = PendingIntent.getActivity(this, 0, notificationBodyIntent,
-            PendingIntent.FLAG_IMMUTABLE
-        )
+
         if(notificationBuilder == null) notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
         val notification = notificationBuilder!!
             .setOnlyAlertOnce(true)
@@ -51,7 +52,7 @@ class TimerService : LifecycleService() {
                     startPendingIntent
                 )
             )
-            .setContentIntent(bodyPendingIntent)
+            .setContentIntent(activityPendingIntent)
             .setStyle(null)
             .build()
         return notification
@@ -93,12 +94,30 @@ class TimerService : LifecycleService() {
         val notification = createNotification()
         startForeground(NOTIFICATION_ID, notification)
     }
+    private fun onTimerFinish(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+            val vibrator = getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            val effect = VibrationEffect.createOneShot(250, VibrationEffect.DEFAULT_AMPLITUDE)
+            val combined = CombinedVibration.createParallel(effect)
+            vibrator.vibrate(combined)
+        } else {
+            val vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val effect = VibrationEffect.createOneShot(250, VibrationEffect.DEFAULT_AMPLITUDE)
+                vibrator.vibrate(effect)
+            } else {
+                vibrator.vibrate(250)
+            }
+        }
+    }
     fun updateForegroundService(){
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         lifecycleScope.launch {
             launch {
                 timerState.timeFlow.collectLatest {
                     manager.notify(NOTIFICATION_ID, updateNotification())
+                    if(it == 0) onTimerFinish()
                 }
             }
             launch {
@@ -114,6 +133,12 @@ class TimerService : LifecycleService() {
         }
     }
     private fun init(){
+        activityIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        activityPendingIntent = PendingIntent.getActivity(this, 0, activityIntent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
         val notificationStartIntent = Intent(this, TimerService::class.java).apply {
             action = CustomActions.START
         }

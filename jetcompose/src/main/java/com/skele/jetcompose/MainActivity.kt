@@ -86,7 +86,7 @@ fun MyApp(
     timerState: TimerState?
 ) {
     val runtimePermissions = arrayOf(Manifest.permission.POST_NOTIFICATIONS)
-    PermissionChecker.checkPermission(context = LocalContext.current, permissions = runtimePermissions)
+    PermissionChecker().checkPermission(context = LocalContext.current, permissions = runtimePermissions)
 
     val navController = rememberNavController()
     BookShelfTheme{
